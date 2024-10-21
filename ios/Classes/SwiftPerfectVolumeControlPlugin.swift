@@ -107,12 +107,24 @@ public class SwiftPerfectVolumeControlPlugin: NSObject, FlutterPlugin {
             name: notification,
             object: nil
         )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+            
         UIApplication.shared.beginReceivingRemoteControlEvents();
     }
 
     @objc func volumeChangeListener(notification: NSNotification) {
         let volume = notification.userInfo!["AVSystemController_AudioVolumeNotificationParameter"] as! Float
         channel?.invokeMethod("volumeChangeListener", arguments: volume)
+    }
+    
+    @objc func appWillEnterForeground() {
+        // Reactivate the audio session and re-enable volume monitoring
+        setupSession()
     }
     
     public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
